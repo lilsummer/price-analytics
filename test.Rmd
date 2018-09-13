@@ -1,0 +1,97 @@
+---
+title: "Pros and Cons Analysis - Lead Model Vs. Community Model"
+author: "Cassie Guo"
+output: 
+  flexdashboard::flex_dashboard:
+    social: menu
+    source_code: embed
+---
+
+```{r setup, include=FALSE}
+library(ggplot2)
+library(plotly)
+library(plyr)
+library(flexdashboard)
+library(dplyr)
+library(sqldf)
+library(lubridate)
+set.seed(955)
+q2 <- read.csv('q2.csv', header = T) %>% as_tibble()
+q1 <- read.csv('q1.csv', header = T) %>% as_tibble()
+```
+
+Column {data-width=200}
+-----------------------------------------------------------------------
+### $ per lead (lead model: charged on demand)
+
+```{r}
+valueBox(40, icon = 'fa-comments')
+```
+
+
+### $ per month (community model: fixed rate)
+
+```{r}
+valueBox(400, icon = 'fa-home')
+```
+
+
+### % of yearly revenue increased by lead model by 2018
+
+```{r}
+gauge(33, min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(0, 2), warning = c(3, 6), danger = c(7, 10)
+))
+```
+
+### % of toatl community increased by lead model by 2018
+
+```{r}
+gauge(14, min = 0, max = 100, symbol = '%', gaugeSectors(
+   success = c(0, 2), warning = c(3, 6), danger = c(7, 10)
+))
+```
+
+Column {data-width=600}
+-----------------------------------------------------------------------
+### Monthly Revenue 2016 - 2020
+
+Lead model revenue growth exceeds community model by the end of July 2017
+
+```{r}
+
+# p <- ggplot(dat, aes(x=xvar, y=yvar)) +
+#             geom_point(shape=1) +    # Use hollow circles
+#             geom_smooth(method=lm)   # Add linear regression line
+# ggplotly(p)
+q3 <- sqldf('SELECT avg(value) as avg, mdl, ym from q2 group by ym, mdl')
+q3$ym <- as.Date(q3$ym)
+colnames(q3) <- c('Monthly_revenue', 'Model', 'Year_month')
+levels(q3$Model) <- c('Community', 'Lead')
+p <- ggplot(q3, aes(x=Year_month, y=Monthly_revenue, group = Model, color = Model)) +
+  geom_smooth(color = 'grey40') +
+  xlab('year-month') +
+  ylab('Revenue in dollar') + 
+  geom_point(size = 2) + theme_minimal()
+  # Use hollow circles
+ggplotly(p)
+```
+
+### Pros and Cons
+
+Lead model
+
+* Pros: Fast revenue growth in the long run; enriched content
+* Cons: High fragility
+
+Community model
+
+* Pros: Stable revenue growth; benefical for big marketers
+* Cons: Slow revenue growth
+
+**Recommended Actions**
+
+* Adopt lead model for the next 3 months 
+* Real time monitoring using A/B testing
+* Develope alternative mixture model
+
